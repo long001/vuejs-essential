@@ -1,0 +1,64 @@
+项目地址
+https://github.com/long001/vuejs-essential
+
+半年前完成的练习，放到服务器上访问
+遇到不少问题
+
+1. 登陆阿里云服务器
+2. git clone 代码
+3. npm install
+4. cd 到项目目录
+5. 在配置文件 config/index.js 中查找 build:，修改其资源路径 assetsPublicPath 为 '/vuejs-essential/dist/'
+6. npm run build
+7. 配置nginx文件
+   配置如下：
+   
+	server {
+		listen 80;
+
+		root /var/www/vuejs-essential/dist;
+
+		index index.html
+
+		server_name vue001.ladder.work;
+
+		location / {
+			try_files $uri $uri/ /index.html;
+		}
+	}
+	
+	以上配置，不能正确访问页面。
+	查看nginx日志，发现js文件找不到。
+	
+	修改后：
+	server {
+		listen 80;
+
+		root /var/www/vuejs-essential/dist;
+
+		index index.html
+
+		server_name vue001.ladder.work;
+
+		location / {
+			try_files $uri $uri/ /index.html;
+		}
+		
+		// 根据nginx错误日志中的资源请求路径，设置资源路径的 root
+		location ~*\.(gif|jpg|jpeg|bmp|png|ico|txt|js|css)$ {
+			root /var/www/;
+		}
+	}
+	
+	以上配置文件页面可以正确访问。
+	
+8. 总结经验
+   >  /var/log/nginx/error.log 命令清空日志文件内容
+   
+   nginx 启动失败，可以查看错误日志，发现原因
+   
+   less /var/log/nginx/error.log
+   
+   shift + g 可以跳到文件末尾
+   
+   页面js报错 Uncaught SyntaxError: Unexpected token < ，可能是js文件没有正确获取，这时可以查看nginx错误日志
